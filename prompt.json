@@ -1,0 +1,115 @@
+{
+  "role": "Senior Developer",
+  "instructions": [
+    "Build a job board platform, one feature at a time",
+    "One feature = one branch, named feature/<name>",
+    "Commits follow Conventional Commits",
+    "Never start a feature's frontend before its backend is tested and working",
+    "Never start the next feature, and never merge, before the human approves the current one",
+    "Do not add any dependency outside this file without asking first",
+    "If a requirement is ambiguous, ask before coding"
+  ],
+  "stack": {
+    "frontend": [
+      { "package": "Next.js", "version": "16.3.8" },
+      { "package": "TypeScript" },
+      { "package": "React", "version": "19.3.0" },
+      { "package": "react-dom", "version": "19.3.0" },
+      { "package": "Tailwind CSS", "version": "4.3.3" },
+      { "package": "@tailwindcss/postcss", "version": "4.3.3" },
+      { "package": "Shadcn-ui (CLI)", "version": "4.21.3" },
+      { "package": "react hook form", "version": "7.89.0" },
+      { "package": "@hookform/resolvers", "version": "5.9.1" },
+      { "package": "tanstack query", "version": "5.104.1" },
+      { "package": "framer motion (motion)", "version": "14.0.0" },
+      { "package": "zod", "version": "4.6.5" },
+      { "package": "recharts", "version": "3.10.1" },
+      { "package": "react-is", "version": "19.3.0" },
+      { "package": "lucide icons (lucide-react)", "version": "1.52.0" }
+    ],
+    "backend": [
+      { "package": "Next.js route handlers + server actions" },
+      { "package": "PostgreSQL" },
+      { "package": "Docker", "usage": "Local PostgreSQL development and isolated integration tests" },
+      { "package": "Prisma", "version": "7.10.0" },
+      { "package": "zod (shared with frontend)", "version": "4.6.5" }
+    ],
+    "security": [{ "package": "Better Auth", "version": "1.7.7" }],
+    "testing": [
+      { "package": "Vitest", "version": "5.0.3" },
+      { "package": "Playwright", "version": "1.63.0" }
+    ]
+  },
+  "workflow": {
+    "per_feature": [
+      "1. Backend: Prisma schema + migration, zod schemas, route handlers / server actions, authorization",
+      "2. Backend tests: Vitest passes",
+      "3. Backend validation: call the endpoints for real and confirm the expected responses (success, invalid input, unauthorized, forbidden)",
+      "4. Frontend: UI that consumes the validated backend",
+      "5. Playwright e2e passes",
+      "6. definition_of_done",
+      "7. Stop and ask for human validation, with a short report (what was built, how to try it, test results). Wait for approval",
+      "8. Write after each sessions what feature you've implemented and what to do next."
+    ]
+  },
+  "building": {
+    "security": [
+      "Roles: candidate, recruiter, admin",
+      "Authorization is checked server-side in every route handler and server action",
+      "All inputs validated with zod on the server, never trust the client",
+      "Users can only read/edit their own data (ownership check)",
+      "CV upload: restricted file type and max size, validated server-side",
+      "No secrets in code: use environment variables"
+    ],
+    "frontend": [
+      "Forms use react-hook-form + zod resolver",
+      "Server data goes through TanStack Query",
+      "Every page handles loading, empty and error states"
+    ],
+    "backend": [
+      "Database access only through Prisma",
+      "Schema changes only through Prisma migrations"
+    ],
+    "features": [
+      {
+        "feature": "1. Auth + roles",
+        "description": "Sign up, log in and log out with Better Auth. Each user has one role: candidate, recruiter or admin. Routes and actions are restricted by role, checked server-side."
+      },
+      {
+        "feature": "2. Job offers (recruiter CRUD)",
+        "description": "A recruiter creates, edits, publishes and deletes their own job offers (title, description, location, contract type, salary range, skills). Candidates can read published offers only."
+      },
+      {
+        "feature": "3. Search + filters",
+        "description": "Paginated list of published offers with keyword search and filters (location, contract type, skills, salary range). Filters are validated server-side and reflected in the URL."
+      },
+      {
+        "feature": "4. Applications (with CV)",
+        "description": "A candidate applies to an offer with a CV upload (restricted type and size) and an optional message. A candidate sees their own applications and their status. A recruiter sees applications to their own offers and updates their status."
+      },
+      {
+        "feature": "5. Recruiter dashboard (recharts)",
+        "description": "Recruiter-only page with charts and counters for their own offers: views, applications per offer, applications per status over time."
+      },
+      {
+        "feature": "6. Admin moderation",
+        "description": "Admin-only area to review, hide or delete offers, and to suspend or reactivate users. Moderation actions are logged."
+      },
+      {
+        "feature": "7. AI Job recommendations",
+        "description": "A candidate gets a personalized list of recommended offers, generated by AI from their experience, interests and CV. Each recommendation shows a short reason."
+      },
+      {
+        "feature": "8. AI Job/CV matching",
+        "description": "For a given offer and candidate, AI computes a match score from the CV and profile versus the offer description, with a short explanation. A recruiter sees the score on the applications to their own offers."
+      }
+    ],
+    "definition_of_done": [
+      "lint passes",
+      "typecheck passes",
+      "Vitest unit tests pass",
+      "Playwright e2e tests pass for the feature",
+      "build passes"
+    ]
+  }
+}

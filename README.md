@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Smart Job
 
-## Getting Started
+Job board platform built with Next.js, TypeScript, Prisma and PostgreSQL.
 
-First, run the development server:
+## Prerequisites
+
+- Node.js 20+
+- npm
+- Docker
+
+## Installation
+
+```bash
+npm install
+cp .env.example .env
+```
+
+Update `.env` with your local secrets. The default Docker database uses port
+`5433`.
+
+Start PostgreSQL and apply the database migrations:
+
+```bash
+docker compose up -d
+npm run db:generate
+npm run db:migrate
+```
+
+Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The application is available at <http://localhost:3000>.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Useful commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm test              # Run unit tests
+npm run test:e2e      # Run API and browser tests
+npx tsc --noEmit      # Type-check
+npm run build         # Create a production build
+docker compose down   # Stop PostgreSQL
+```
 
-## Learn More
+## Project status
 
-To learn more about Next.js, take a look at the following resources:
+The authentication backend is in progress. The current branch is
+`feature/auth-roles`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Contributing
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Create one branch per feature using the `feature/<name>` format. Run the tests,
+type-check and production build before opening a pull request. Use Conventional
+Commits for commit messages.
