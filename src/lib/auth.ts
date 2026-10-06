@@ -13,7 +13,7 @@ export const auth = betterAuth({
         type: "string",
         required: false,
         defaultValue: "candidate",
-        input: true,
+        input: false,
       },
     },
   },

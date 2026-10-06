@@ -38,6 +38,7 @@ The application is available at <http://localhost:3000>.
 
 ```bash
 npm test              # Run unit tests
+npm run test:e2e      # Run API and browser tests
 npx tsc --noEmit      # Type-check
 npm run build         # Create a production build
 docker compose down   # Stop PostgreSQL
