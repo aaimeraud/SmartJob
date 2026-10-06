@@ -11,7 +11,7 @@ last_session:
   feature: "Auth + rôles: backend, autorisation et interface"
   done[21]: "Better Auth signup/login/logout","Candidate default role server-side","Session endpoint /api/me","Recruiter role-protected endpoint","401 unauthenticated response","403 forbidden response","Server-side Zod validation","Auth form with react-hook-form and zod resolver","French auth landing page","Subject-separated Vitest tests","Subject-separated Playwright API tests","Playwright browser auth flow","TypeScript strict type-check","Vitest 6 tests passed","Playwright 4 tests passed","Next.js production build passed"
   tests: "npx tsc --noEmit: passed; npm test: 6 passed; npm run test:e2e: 4 passed; npm run build: passed"
-  commit: "pending: complete auth and roles feature"
+  commit: "06f1c9d feat(auth): complete authentication and role access"
   files[11]: "src/lib/authorization.ts","src/app/api/me/route.ts","src/app/api/recruiter/access/route.ts","src/components/auth-panel.tsx","tests/auth/auth-schema.test.ts","tests/auth/authorization.test.ts","tests/api/auth-api.spec.ts","tests/e2e/auth.spec.ts","vitest.config.ts","playwright.config.ts","README.md"
 current:
   feature: "1. Auth + roles"
