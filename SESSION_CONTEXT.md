@@ -11,7 +11,7 @@ last_session:
   feature: "Auth + rôles: base backend et PostgreSQL local"
   done[13]: "Next.js 16.3.8 scaffold","Prisma 7.10 PostgreSQL schema","Better Auth config","Auth route /api/auth/[...all]","Zod sign-up schema","Vitest tests","Prisma client generation","Next.js production build","Docker Compose PostgreSQL","Prisma migration init_auth_roles","Live sign-up success check","Live invalid/unauthorized checks","Docker Compose variables d'environnement"
   tests: "npm test: 2 passed; npm run db:generate: passed; npm run db:migrate: passed; npm run build: passed; live API: 200/400/401 verified; docker compose config: passed"
-  commit: "pending: use environment variables in Docker Compose"
+  commit: "6804733 chore(db): configure postgres from environment"
   files[3]: "docker-compose.yml",".env.example","SESSION_CONTEXT.md"
 current:
   feature: "1. Auth + roles"
