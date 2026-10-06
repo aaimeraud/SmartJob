@@ -22,9 +22,11 @@ stack:
     recharts,3.10.1
     react-is,19.3.0
     lucide icons (lucide-react),1.52.0
-  backend[4]:
+  backend[5]:
     - package: Next.js route handlers + server actions
     - package: PostgreSQL
+    - package: Docker
+      usage: "Local PostgreSQL development and isolated integration tests"
     - package: Prisma
       version: 7.10.0
     - package: zod (shared with frontend)
@@ -51,3 +53,13 @@ building:
     8. AI Job/CV matching,"For a given offer and candidate, AI computes a match score from the CV and profile versus the offer description, with a short explanation. A recruiter sees the score on the applications to their own offers."
   definition_of_done[5]: lint passes,typecheck passes,Vitest unit tests pass,Playwright e2e tests pass for the feature,build passes
 ```
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

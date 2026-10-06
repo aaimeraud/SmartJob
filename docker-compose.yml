@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: smart-job-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: smart_job
+      POSTGRES_PASSWORD: smart_job
+      POSTGRES_DB: smart_job
+    ports:
+      - "5433:5432"
+    volumes:
+      - smart-job-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smart_job -d smart_job"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  smart-job-postgres-data:

@@ -16,9 +16,11 @@ stack:
     recharts,3.10.1
     react-is,19.3.0
     lucide icons (lucide-react),1.52.0
-  backend[4]:
+  backend[5]:
     - package: Next.js route handlers + server actions
     - package: PostgreSQL
+    - package: Docker
+      usage: "Local PostgreSQL development and isolated integration tests"
     - package: Prisma
       version: 7.10.0
     - package: zod (shared with frontend)

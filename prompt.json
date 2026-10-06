@@ -29,6 +29,7 @@
     "backend": [
       { "package": "Next.js route handlers + server actions" },
       { "package": "PostgreSQL" },
+      { "package": "Docker", "usage": "Local PostgreSQL development and isolated integration tests" },
       { "package": "Prisma", "version": "7.10.0" },
       { "package": "zod (shared with frontend)", "version": "4.6.5" }
     ],
