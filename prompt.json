@@ -12,6 +12,7 @@
   "stack": {
     "frontend": [
       { "package": "Next.js", "version": "16.3.8" },
+      { "package": "TypeScript" },
       { "package": "React", "version": "19.3.0" },
       { "package": "react-dom", "version": "19.3.0" },
       { "package": "Tailwind CSS", "version": "4.3.3" },

@@ -8,14 +8,14 @@ branch: feature/auth-roles
 status: in_progress
 last_session:
   date: 2026-10-06
-  feature: "Auth + rôles: base backend et PostgreSQL local"
-  done[13]: "Next.js 16.3.8 scaffold","Prisma 7.10 PostgreSQL schema","Better Auth config","Auth route /api/auth/[...all]","Zod sign-up schema","Vitest tests","Prisma client generation","Next.js production build","Docker Compose PostgreSQL","Prisma migration init_auth_roles","Live sign-up success check","Live invalid/unauthorized checks","Docker Compose variables d'environnement"
-  tests: "npm test: 2 passed; npm run db:generate: passed; npm run db:migrate: passed; npm run build: passed; live API: 200/400/401 verified; docker compose config: passed"
-  commit: "6804733 chore(db): configure postgres from environment"
-  files[3]: "docker-compose.yml",".env.example","SESSION_CONTEXT.md"
+  feature: "Auth + rôles: migration TypeScript du socle"
+  done[15]: "Next.js 16.3.8 scaffold","Prisma 7.10 PostgreSQL schema","Better Auth config","Auth route /api/auth/[...all]","Zod sign-up schema","Vitest tests","Prisma client generation","Next.js production build","Docker Compose PostgreSQL","Prisma migration init_auth_roles","Live sign-up success check","Live invalid/unauthorized checks","Docker Compose variables d'environnement","Application files converted to TypeScript","TypeScript strict type-check"
+  tests: "npx tsc --noEmit: passed; npm test: 2 passed; npm run build: passed; docker compose config: passed"
+  commit: "pending: migrate application from JavaScript to TypeScript"
+  files[8]: "tsconfig.json","src/app/layout.tsx","src/app/page.tsx","src/app/api/auth/[...all]/route.ts","src/lib/auth.ts","src/lib/auth-schema.ts","src/lib/auth-schema.test.ts","src/lib/prisma.ts"
 current:
   feature: "1. Auth + roles"
-  phase: "Backend validated; frontend not started"
+  phase: "Backend validated; TypeScript foundation ready; frontend not started"
   blockers[1]: "Human approval required before continuing"
 next[4]: "Add role-protected application route/action and forbidden test","Implement auth frontend","Run Playwright + definition_of_done checks","Stop and request human validation"
 rules[4]: "One feature per feature/<name> branch","Follow Conventional Commits","Do not start frontend before backend tests and live validation pass","Update this file after every session"

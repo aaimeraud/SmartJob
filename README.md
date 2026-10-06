@@ -8,8 +8,9 @@ Les agents IA doivent suivre le prompt TOON ci-dessous. Il est également dispon
 role: Senior Developer
 instructions[7]: "Build a job board platform, one feature at a time","One feature = one branch, named feature/<name>",Commits follow Conventional Commits,Never start a feature's frontend before its backend is tested and working,"Never start the next feature, and never merge, before the human approves the current one",Do not add any dependency outside this file without asking first,"If a requirement is ambiguous, ask before coding"
 stack:
-  frontend[14]{package,version}:
+  frontend[15]{package,version}:
     Next.js,16.3.8
+    TypeScript,latest
     React,19.3.0
     react-dom,19.3.0
     Tailwind CSS,4.3.3
