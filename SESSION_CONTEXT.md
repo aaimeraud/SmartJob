@@ -11,7 +11,7 @@ last_session:
   feature: "Auth + rôles: migration TypeScript du socle"
   done[15]: "Next.js 16.3.8 scaffold","Prisma 7.10 PostgreSQL schema","Better Auth config","Auth route /api/auth/[...all]","Zod sign-up schema","Vitest tests","Prisma client generation","Next.js production build","Docker Compose PostgreSQL","Prisma migration init_auth_roles","Live sign-up success check","Live invalid/unauthorized checks","Docker Compose variables d'environnement","Application files converted to TypeScript","TypeScript strict type-check"
   tests: "npx tsc --noEmit: passed; npm test: 2 passed; npm run build: passed; docker compose config: passed"
-  commit: "pending: migrate application from JavaScript to TypeScript"
+  commit: "7f3fdfa refactor: migrate application to typescript"
   files[8]: "tsconfig.json","src/app/layout.tsx","src/app/page.tsx","src/app/api/auth/[...all]/route.ts","src/lib/auth.ts","src/lib/auth-schema.ts","src/lib/auth-schema.test.ts","src/lib/prisma.ts"
 current:
   feature: "1. Auth + roles"
