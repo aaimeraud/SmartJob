@@ -24,6 +24,30 @@ type CurrentUser = {
   role: "candidate" | "recruiter" | "admin";
 };
 
+const searchFormSchema = z.object({
+  q: z.string().trim().max(160).optional(),
+  location: z.string().trim().max(160).optional(),
+  contractType: z.union([contractTypeSchema, z.literal("")]).optional(),
+  skills: z.string().trim().max(1_800).optional(),
+  minSalary: z
+    .string()
+    .regex(/^\d*$/, "Le salaire doit être un nombre positif.")
+    .optional(),
+  maxSalary: z
+    .string()
+    .regex(/^\d*$/, "Le salaire doit être un nombre positif.")
+    .optional(),
+});
+
+type SearchFormInput = z.infer<typeof searchFormSchema>;
+
+type Pagination = {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+};
+
 const contractLabels: Record<z.infer<typeof contractTypeSchema>, string> = {
   full_time: "CDI / temps plein",
   part_time: "Temps partiel",
@@ -48,14 +72,24 @@ export function JobBoard() {
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [offers, setOffers] = useState<JobOffer[]>([]);
   const [ownOffers, setOwnOffers] = useState<JobOffer[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({
+    page: 1,
+    pageSize: 10,
+    total: 0,
+    totalPages: 0,
+  });
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
-  async function loadOffers() {
-    const response = await fetch("/api/jobs");
+  async function loadOffers(query = "") {
+    const response = await fetch(`/api/jobs${query ? `?${query}` : ""}`);
     if (!response.ok) throw new Error("Impossible de charger les offres.");
-    const data = (await response.json()) as { offers: JobOffer[] };
+    const data = (await response.json()) as {
+      offers: JobOffer[];
+      pagination: Pagination;
+    };
     setOffers(data.offers);
+    setPagination(data.pagination);
   }
 
   async function loadSession() {
@@ -66,7 +100,7 @@ export function JobBoard() {
   }
 
   useEffect(() => {
-    void Promise.all([loadSession(), loadOffers()])
+    void Promise.all([loadSession(), loadOffers(window.location.search.slice(1))])
       .then(async ([currentUser]) => {
         setUser(currentUser);
         if (currentUser?.role === "recruiter") {
@@ -82,7 +116,7 @@ export function JobBoard() {
   }, []);
 
   async function refresh() {
-    await loadOffers();
+    await loadOffers(window.location.search.slice(1));
     if (user?.role === "recruiter") {
       const response = await fetch("/api/jobs?mine=true");
       if (response.ok) {
@@ -106,6 +140,15 @@ export function JobBoard() {
           Les dernières offres publiées
         </h2>
       </div>
+
+      <SearchFilters
+        onSearch={(query) => {
+          window.history.pushState({}, "", query ? `/?${query}` : "/");
+          void loadOffers(query).catch(() =>
+            setMessage("Impossible de charger les offres."),
+          );
+        }}
+      />
 
       {offers.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-slate-300 p-6 text-slate-500">
@@ -149,6 +192,47 @@ export function JobBoard() {
         </div>
       )}
 
+      {pagination.totalPages > 1 && (
+        <nav
+          aria-label="Pagination des offres"
+          className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 text-sm"
+        >
+          <button
+            type="button"
+            disabled={pagination.page === 1}
+            onClick={() => {
+              const params = new URLSearchParams(window.location.search);
+              params.set("page", String(pagination.page - 1));
+              window.history.pushState({}, "", `/?${params.toString()}`);
+              void loadOffers(params.toString()).catch(() =>
+                setMessage("Impossible de charger les offres."),
+              );
+            }}
+            className="rounded-lg px-3 py-2 text-indigo-700 disabled:opacity-40"
+          >
+            Précédent
+          </button>
+          <span className="text-slate-500">
+            Page {pagination.page} sur {pagination.totalPages}
+          </span>
+          <button
+            type="button"
+            disabled={pagination.page === pagination.totalPages}
+            onClick={() => {
+              const params = new URLSearchParams(window.location.search);
+              params.set("page", String(pagination.page + 1));
+              window.history.pushState({}, "", `/?${params.toString()}`);
+              void loadOffers(params.toString()).catch(() =>
+                setMessage("Impossible de charger les offres."),
+              );
+            }}
+            className="rounded-lg px-3 py-2 text-indigo-700 disabled:opacity-40"
+          >
+            Suivant
+          </button>
+        </nav>
+      )}
+
       {user?.role === "recruiter" && (
         <RecruiterOfferManager
           offers={ownOffers}
@@ -162,6 +246,88 @@ export function JobBoard() {
         </p>
       )}
     </section>
+  );
+}
+
+function SearchFilters({ onSearch }: { onSearch: (query: string) => void }) {
+  const form = useForm<SearchFormInput>({
+    resolver: zodResolver(searchFormSchema),
+    defaultValues: {
+      q: "",
+      location: "",
+      contractType: undefined,
+      skills: "",
+      minSalary: "",
+      maxSalary: "",
+    },
+  });
+
+  function submit(values: SearchFormInput) {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(values)) {
+      if (value) params.set(key, value);
+    }
+    onSearch(params.toString());
+  }
+
+  return (
+    <form
+      onSubmit={form.handleSubmit(submit)}
+      className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-2 lg:grid-cols-3"
+    >
+      <input
+        {...form.register("q")}
+        placeholder="Mot-clé"
+        aria-label="Mot-clé"
+        className="rounded-xl border border-slate-200 px-3 py-2 text-slate-950"
+      />
+      <input
+        {...form.register("location")}
+        placeholder="Localisation"
+        aria-label="Localisation"
+        className="rounded-xl border border-slate-200 px-3 py-2 text-slate-950"
+      />
+      <select
+        {...form.register("contractType")}
+        aria-label="Type de contrat"
+        className="rounded-xl border border-slate-200 px-3 py-2 text-slate-950"
+      >
+        <option value="">Tous les contrats</option>
+        {Object.entries(contractLabels).map(([value, label]) => (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        ))}
+      </select>
+      <input
+        {...form.register("skills")}
+        placeholder="Compétences (séparées par des virgules)"
+        aria-label="Compétences"
+        className="rounded-xl border border-slate-200 px-3 py-2 text-slate-950 md:col-span-2"
+      />
+      <div className="flex gap-3">
+        <input
+          {...form.register("minSalary")}
+          inputMode="numeric"
+          placeholder="Salaire min."
+          aria-label="Salaire minimum"
+          className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2 text-slate-950"
+        />
+        <input
+          {...form.register("maxSalary")}
+          inputMode="numeric"
+          placeholder="Salaire max."
+          aria-label="Salaire maximum"
+          className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2 text-slate-950"
+        />
+      </div>
+      <button
+        type="submit"
+        className="rounded-xl bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-500"
+      >
+        Rechercher
+      </button>
+    </form>
   );
 }
 
