@@ -133,6 +133,13 @@ test.describe("API des candidatures", () => {
       );
       expect(cvResponse.ok()).toBeTruthy();
       expect(cvResponse.headers()["content-type"]).toContain("application/pdf");
+      await expect
+        .poll(async () =>
+          prisma.cvAccessLog.count({
+            where: { applicationId: data.application.id, action: "download" },
+          }),
+        )
+        .toBe(1);
       const deleteResponse = await request.delete(
         `/api/applications/${data.application.id}`,
       );
