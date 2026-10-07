@@ -46,8 +46,9 @@ docker compose down   # Stop PostgreSQL
 
 ## Project status
 
-Authentication, recruiter job offers, and published-offer search are
-implemented. The current feature branch is `feature/search-filters`.
+Authentication, recruiter job offers, published-offer search, and candidate
+applications are implemented. The current feature branch is
+`feature/applications-cv`.
 
 ## Job offers
 
@@ -62,6 +63,14 @@ Published offers can be searched with keyword, location, contract type, skills,
 and salary range filters. Results are paginated and the active filters are
 reflected in the URL. The public API accepts `q`, `location`, `contractType`,
 `skills`, `minSalary`, `maxSalary`, `page`, and `pageSize` query parameters.
+
+## Applications
+
+Candidates can apply once to a published offer with a PDF or DOCX CV up to
+5 MB and an optional message. Candidates can view their applications, while
+recruiters can view applications for their own offers, update statuses, and
+download CVs. CV content is never returned in JSON responses and is only
+available through an authorized endpoint.
 
 ## Contributing
 

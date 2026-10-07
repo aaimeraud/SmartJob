@@ -5,6 +5,10 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
+  applicationFormSchema,
+  type ApplicationFormInput,
+} from "@/lib/application-schema";
+import {
   contractTypeSchema,
   createJobOfferSchema,
   type CreateJobOfferInput,
@@ -22,6 +26,19 @@ type CurrentUser = {
   id: string;
   name: string;
   role: "candidate" | "recruiter" | "admin";
+};
+
+type ApplicationSummary = {
+  id: string;
+  jobOfferId: string;
+  cvFilename: string;
+  cvMimeType: string;
+  cvSize: number;
+  message: string | null;
+  status: "submitted" | "reviewing" | "accepted" | "rejected";
+  createdAt: string;
+  jobOffer: { id: string; title: string; location?: string };
+  candidate?: { id: string; name: string; email: string };
 };
 
 const searchFormSchema = z.object({
@@ -72,6 +89,7 @@ export function JobBoard() {
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [offers, setOffers] = useState<JobOffer[]>([]);
   const [ownOffers, setOwnOffers] = useState<JobOffer[]>([]);
+  const [applications, setApplications] = useState<ApplicationSummary[]>([]);
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     pageSize: 10,
@@ -110,9 +128,36 @@ export function JobBoard() {
             setOwnOffers(data.offers);
           }
         }
+        const applicationsResponse = await fetch("/api/applications");
+        if (applicationsResponse.ok) {
+          const data = (await applicationsResponse.json()) as {
+            applications: ApplicationSummary[];
+          };
+          setApplications(data.applications);
+        }
       })
       .catch(() => setMessage("Impossible de charger les offres."))
       .finally(() => setIsLoading(false));
+    const handleSessionChange = () => {
+      void loadSession().then(async (currentUser) => {
+        setUser(currentUser);
+        if (currentUser) {
+          const response = await fetch("/api/applications");
+          if (response.ok) {
+            const data = (await response.json()) as {
+              applications: ApplicationSummary[];
+            };
+            setApplications(data.applications);
+          }
+        }
+      });
+    };
+    window.addEventListener("smart-job:session-changed", handleSessionChange);
+    return () =>
+      window.removeEventListener(
+        "smart-job:session-changed",
+        handleSessionChange,
+      );
   }, []);
 
   async function refresh() {
@@ -123,6 +168,13 @@ export function JobBoard() {
         const data = (await response.json()) as { offers: JobOffer[] };
         setOwnOffers(data.offers);
       }
+    }
+    const applicationsResponse = await fetch("/api/applications");
+    if (applicationsResponse.ok) {
+      const data = (await applicationsResponse.json()) as {
+        applications: ApplicationSummary[];
+      };
+      setApplications(data.applications);
     }
   }
 
@@ -187,6 +239,16 @@ export function JobBoard() {
                   </span>
                 ))}
               </div>
+              {user?.role === "candidate" && (
+                <ApplicationForm
+                  jobOfferId={offer.id}
+                  existingApplication={applications.find(
+                    (application) => application.jobOfferId === offer.id,
+                  )}
+                  onSubmitted={refresh}
+                  onMessage={setMessage}
+                />
+              )}
             </article>
           ))}
         </div>
@@ -236,6 +298,7 @@ export function JobBoard() {
       {user?.role === "recruiter" && (
         <RecruiterOfferManager
           offers={ownOffers}
+          applications={applications}
           onRefresh={refresh}
           onMessage={setMessage}
         />
@@ -246,6 +309,87 @@ export function JobBoard() {
         </p>
       )}
     </section>
+  );
+}
+
+function ApplicationForm({
+  jobOfferId,
+  existingApplication,
+  onSubmitted,
+  onMessage,
+}: {
+  jobOfferId: string;
+  existingApplication?: ApplicationSummary;
+  onSubmitted: () => Promise<void>;
+  onMessage: (message: string) => void;
+}) {
+  const form = useForm<ApplicationFormInput>({
+    resolver: zodResolver(applicationFormSchema),
+    defaultValues: { message: null },
+  });
+
+  if (existingApplication) {
+    return (
+      <p className="mt-5 text-sm text-slate-500">
+        Candidature envoyée · statut : {existingApplication.status}
+      </p>
+    );
+  }
+
+  async function submit(values: ApplicationFormInput) {
+    onMessage("");
+    const data = new FormData();
+    data.append("cv", values.cv);
+    if (values.message) data.append("message", values.message);
+    const response = await fetch(`/api/jobs/${jobOfferId}/applications`, {
+      method: "POST",
+      body: data,
+    });
+    if (!response.ok) {
+      onMessage("Impossible d'envoyer la candidature.");
+      return;
+    }
+    form.reset({ message: null });
+    await onSubmitted();
+    onMessage("Candidature envoyée.");
+  }
+
+  return (
+    <form
+      onSubmit={form.handleSubmit(submit)}
+      className="mt-5 space-y-3 border-t border-slate-100 pt-4"
+    >
+      <label className="block text-sm font-medium text-slate-700">
+        CV (PDF ou DOCX, 5 Mo maximum)
+        <input
+          type="file"
+          accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) {
+              form.setValue("cv", file, { shouldValidate: true });
+            }
+          }}
+          className="mt-1 block w-full text-sm"
+        />
+      </label>
+      <textarea
+        {...form.register("message")}
+        placeholder="Message (optionnel)"
+        rows={2}
+        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+      />
+      {form.formState.errors.cv && (
+        <p className="text-sm text-rose-600">{form.formState.errors.cv.message}</p>
+      )}
+      <button
+        type="submit"
+        disabled={form.formState.isSubmitting}
+        className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+      >
+        {form.formState.isSubmitting ? "Envoi..." : "Postuler"}
+      </button>
+    </form>
   );
 }
 
@@ -333,10 +477,12 @@ function SearchFilters({ onSearch }: { onSearch: (query: string) => void }) {
 
 function RecruiterOfferManager({
   offers,
+  applications,
   onRefresh,
   onMessage,
 }: {
   offers: JobOffer[];
+  applications: ApplicationSummary[];
   onRefresh: () => Promise<void>;
   onMessage: (message: string) => void;
 }) {
@@ -491,6 +637,44 @@ function RecruiterOfferManager({
                   Supprimer
                 </button>
               </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {applications.length > 0 && (
+        <div className="mt-8 space-y-3">
+          <h3 className="font-semibold">Candidatures reçues</h3>
+          {applications.map((application) => (
+            <div
+              key={application.id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white/10 p-3 text-sm"
+            >
+              <span>
+                {application.candidate?.name} · {application.jobOffer.title}
+              </span>
+              <select
+                value={application.status}
+                onChange={async (event) => {
+                  await fetch(`/api/applications/${application.id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ status: event.target.value }),
+                  });
+                  await onRefresh();
+                }}
+                className="rounded-lg px-2 py-1 text-slate-950"
+              >
+                <option value="submitted">Reçue</option>
+                <option value="reviewing">En étude</option>
+                <option value="accepted">Acceptée</option>
+                <option value="rejected">Refusée</option>
+              </select>
+              <a
+                href={`/api/applications/${application.id}`}
+                className="text-indigo-300 hover:text-indigo-200"
+              >
+                Télécharger le CV
+              </a>
             </div>
           ))}
         </div>
