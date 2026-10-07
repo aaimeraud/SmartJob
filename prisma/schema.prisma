@@ -12,6 +12,20 @@ enum UserRole {
   admin
 }
 
+enum JobOfferStatus {
+  draft
+  published
+}
+
+enum ContractType {
+  full_time
+  part_time
+  contract
+  internship
+  apprenticeship
+  freelance
+}
+
 model User {
   id            String    @id
   name          String
@@ -23,6 +37,27 @@ model User {
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+  jobOffers     JobOffer[]
+}
+
+model JobOffer {
+  id           String          @id @default(cuid())
+  title        String
+  description  String
+  location     String
+  contractType ContractType
+  salaryMin    Int?
+  salaryMax    Int?
+  skills       String[]
+  status       JobOfferStatus  @default(draft)
+  publishedAt  DateTime?
+  recruiterId  String
+  recruiter    User            @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([recruiterId])
+  @@index([status, createdAt])
 }
 
 model Session {

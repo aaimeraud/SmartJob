@@ -46,8 +46,15 @@ docker compose down   # Stop PostgreSQL
 
 ## Project status
 
-The authentication backend is in progress. The current branch is
-`feature/auth-roles`.
+Authentication and recruiter job offers are implemented. The current feature
+branch is `feature/job-offers`.
+
+## Job offers
+
+Recruiters can create, edit, publish and delete their own job offers from the
+home page. Visitors and candidates can only see published offers. The API is
+available under `/api/jobs`; recruiter ownership and all payload validation are
+enforced server-side.
 
 ## Contributing
 
