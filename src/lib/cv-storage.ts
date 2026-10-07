@@ -5,7 +5,9 @@ import {
 } from "node:crypto";
 
 function encryptionKey() {
-  const configured = process.env.CV_ENCRYPTION_KEY;
+  const version = process.env.CV_ENCRYPTION_KEY_VERSION ?? "1";
+  const configured =
+    process.env[`CV_ENCRYPTION_KEY_V${version}`] ?? process.env.CV_ENCRYPTION_KEY;
   if (!configured) {
     throw new Error("CV_ENCRYPTION_KEY is required to access CV storage");
   }
@@ -24,11 +26,27 @@ export function encryptCv(data: Uint8Array) {
     data: encrypted,
     iv,
     authTag: cipher.getAuthTag(),
+    keyVersion: Number(process.env.CV_ENCRYPTION_KEY_VERSION ?? "1"),
   };
 }
 
-export function decryptCv(data: Uint8Array, iv: Uint8Array, authTag: Uint8Array) {
-  const decipher = createDecipheriv("aes-256-gcm", encryptionKey(), iv);
+export function decryptCv(
+  data: Uint8Array,
+  iv: Uint8Array,
+  authTag: Uint8Array,
+  keyVersion = 1,
+) {
+  const configured =
+    process.env[`CV_ENCRYPTION_KEY_V${keyVersion}`] ??
+    (keyVersion === 1 ? process.env.CV_ENCRYPTION_KEY : undefined);
+  if (!configured) {
+    throw new Error(`CV_ENCRYPTION_KEY_V${keyVersion} is required`);
+  }
+  const key = Buffer.from(configured, "hex");
+  if (key.length !== 32) {
+    throw new Error(`CV_ENCRYPTION_KEY_V${keyVersion} must be 64 hexadecimal characters`);
+  }
+  const decipher = createDecipheriv("aes-256-gcm", key, iv);
   decipher.setAuthTag(authTag);
   return Buffer.concat([decipher.update(data), decipher.final()]);
 }

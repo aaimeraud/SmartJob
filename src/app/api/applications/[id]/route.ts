@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/authorization";
 import { applicationStatusUpdateSchema } from "@/lib/application-schema";
 import { decryptCv } from "@/lib/cv-storage";
+import { logCvAccess } from "@/lib/cv-audit";
 import { prisma } from "@/lib/prisma";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
@@ -52,7 +53,7 @@ export async function GET(request: Request, context: RouteContext) {
   if ("response" in session) {
     return session.response;
   }
-  const rateLimit = consumeRateLimit(`cv-download:${session.user.id}`, 20, 60 * 60 * 1000);
+  const rateLimit = await consumeRateLimit(`cv-download:${session.user.id}`, 20, 60 * 60 * 1000);
   if (!rateLimit.allowed) {
     return NextResponse.json(
       { error: "Too many CV downloads. Try again later." },
@@ -66,6 +67,7 @@ export async function GET(request: Request, context: RouteContext) {
       cvData: true,
       cvIv: true,
       cvAuthTag: true,
+      cvKeyVersion: true,
       cvFilename: true,
       cvMimeType: true,
       candidateId: true,
@@ -85,7 +87,9 @@ export async function GET(request: Request, context: RouteContext) {
     application.cvData,
     application.cvIv,
     application.cvAuthTag,
+    application.cvKeyVersion,
   );
+  await logCvAccess(session.user.id, id, "download");
   return new Response(decryptedCv, {
     headers: {
       "Content-Type": application.cvMimeType,

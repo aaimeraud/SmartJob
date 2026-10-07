@@ -79,6 +79,16 @@ procedure, otherwise existing CVs cannot be decrypted. Production deployments
 should also configure a scheduled retention job to delete applications and CVs
 after the documented GDPR retention period.
 
+Call `POST /api/admin/privacy/retention` from a scheduler with
+`Authorization: Bearer $PRIVACY_RETENTION_CRON_SECRET`, or with an authenticated
+admin session. The endpoint also cleans expired rate-limit buckets. For key
+rotation, keep the old `CV_ENCRYPTION_KEY_V<n>` values available, set
+`CV_ENCRYPTION_KEY_VERSION` and `CV_ENCRYPTION_KEY_V<n>` to the new key, then
+call `POST /api/admin/privacy/re-encrypt-cvs` as an admin repeatedly until it
+reports zero remaining records. Only then can the old key be removed.
+CV downloads are recorded in `CvAccessLog`, and rate limits are stored in
+PostgreSQL so they work across multiple application instances.
+
 ## Contributing
 
 Create one branch per feature using the `feature/<name>` format. Run the tests,

@@ -17,7 +17,7 @@ export async function POST(request: Request, context: RouteContext) {
   if ("response" in result) {
     return result.response;
   }
-  const rateLimit = consumeRateLimit(`application:${result.user.id}`, 10, 60 * 60 * 1000);
+  const rateLimit = await consumeRateLimit(`application:${result.user.id}`, 10, 60 * 60 * 1000);
   if (!rateLimit.allowed) {
     return NextResponse.json(
       { error: "Too many applications submitted. Try again later." },
@@ -86,6 +86,7 @@ export async function POST(request: Request, context: RouteContext) {
       cvData: encryptedCv.data,
       cvIv: encryptedCv.iv,
       cvAuthTag: encryptedCv.authTag,
+      cvKeyVersion: encryptedCv.keyVersion,
       message: messageResult.data ?? null,
     },
     select: {
