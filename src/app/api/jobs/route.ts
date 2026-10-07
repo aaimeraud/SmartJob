@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import {
   createJobOfferSchema,
+  jobOfferSearchSchema,
   jobOfferStatusSchema,
 } from "@/lib/job-offer-schema";
 import { requireRole } from "@/lib/authorization";
@@ -33,12 +34,90 @@ export async function GET(request: Request) {
     );
   }
 
-  const offers = await prisma.jobOffer.findMany({
-    where: { status: "published" },
-    orderBy: { publishedAt: "desc" },
-  });
+  const searchParams = Object.fromEntries(
+    [...url.searchParams.entries()].filter(([key]) => key !== "status"),
+  );
+  const parsedSearch = jobOfferSearchSchema.safeParse(searchParams);
+  if (!parsedSearch.success) {
+    return NextResponse.json(
+      { error: "Invalid job search filters", issues: parsedSearch.error.issues },
+      { status: 400 },
+    );
+  }
 
-  return NextResponse.json({ offers });
+  const {
+    q,
+    location,
+    contractType,
+    skills,
+    minSalary,
+    maxSalary,
+    page,
+    pageSize,
+  } = parsedSearch.data;
+  const where = {
+    status: "published" as const,
+    AND: [
+      ...(q
+        ? [
+            {
+              OR: [
+                { title: { contains: q, mode: "insensitive" as const } },
+                {
+                  description: { contains: q, mode: "insensitive" as const },
+                },
+                { location: { contains: q, mode: "insensitive" as const } },
+              ],
+            },
+          ]
+        : []),
+      ...(location
+        ? [
+            {
+              location: {
+                contains: location,
+                mode: "insensitive" as const,
+              },
+            },
+          ]
+        : []),
+      ...(contractType ? [{ contractType }] : []),
+      ...(skills?.length ? [{ skills: { hasSome: skills } }] : []),
+      ...(minSalary !== undefined
+        ? [
+            {
+              OR: [{ salaryMax: { gte: minSalary } }, { salaryMax: null }],
+            },
+          ]
+        : []),
+      ...(maxSalary !== undefined
+        ? [
+            {
+              OR: [{ salaryMin: { lte: maxSalary } }, { salaryMin: null }],
+            },
+          ]
+        : []),
+    ],
+  };
+  const [offers, total] = await prisma.$transaction([
+    prisma.jobOffer.findMany({
+      where,
+      orderBy: { publishedAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.jobOffer.count({ where }),
+  ]);
+
+  return NextResponse.json({
+    offers,
+    pagination: {
+      page,
+      pageSize,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+    },
+  });
 }
 
 export async function POST(request: Request) {

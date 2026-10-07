@@ -46,8 +46,8 @@ docker compose down   # Stop PostgreSQL
 
 ## Project status
 
-Authentication and recruiter job offers are implemented. The current feature
-branch is `feature/job-offers`.
+Authentication, recruiter job offers, and published-offer search are
+implemented. The current feature branch is `feature/search-filters`.
 
 ## Job offers
 
@@ -55,6 +55,13 @@ Recruiters can create, edit, publish and delete their own job offers from the
 home page. Visitors and candidates can only see published offers. The API is
 available under `/api/jobs`; recruiter ownership and all payload validation are
 enforced server-side.
+
+## Search and filters
+
+Published offers can be searched with keyword, location, contract type, skills,
+and salary range filters. Results are paginated and the active filters are
+reflected in the URL. The public API accepts `q`, `location`, `contractType`,
+`skills`, `minSalary`, `maxSalary`, `page`, and `pageSize` query parameters.
 
 ## Contributing
 

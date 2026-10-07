@@ -16,6 +16,16 @@ const offer = {
   status: "published",
 };
 
+const filterOffer = {
+  ...offer,
+  title: "Recherche filtres TypeScript",
+  description: "Une offre conçue pour vérifier les filtres de recherche.",
+  location: "Lyon",
+  skills: ["TypeScript", "Node.js"],
+  salaryMin: 45_000,
+  salaryMax: 60_000,
+};
+
 async function createUser(
   request: APIRequestContext,
   email: string,
@@ -33,7 +43,7 @@ async function createUser(
 test.describe("API des offres d'emploi", () => {
   test.afterAll(async () => {
     await prisma.jobOffer.deleteMany({
-      where: { title: offer.title },
+      where: { title: { in: [offer.title, filterOffer.title] } },
     });
   });
 
@@ -88,5 +98,33 @@ test.describe("API des offres d'emploi", () => {
     await createUser(request, uniqueEmail("candidate"));
     const response = await request.post("/api/jobs", { data: offer });
     expect(response.status()).toBe(403);
+  });
+
+  test("filtre les offres publiées et pagine les résultats", async ({
+    request,
+  }) => {
+    const email = uniqueEmail("search-recruiter");
+    await createUser(request, email);
+    await prisma.user.update({
+      where: { email },
+      data: { role: "recruiter" },
+    });
+
+    const createResponse = await request.post("/api/jobs", {
+      data: filterOffer,
+    });
+    expect(createResponse.status()).toBe(201);
+
+    const response = await request.get(
+      "/api/jobs?q=Recherche%20filtres&location=Lyon&contractType=full_time&skills=TypeScript&minSalary=40000&maxSalary=70000&page=1&pageSize=1",
+    );
+    expect(response.ok()).toBeTruthy();
+    await expect(response.json()).resolves.toMatchObject({
+      offers: [{ title: filterOffer.title }],
+      pagination: { page: 1, pageSize: 1, total: 1, totalPages: 1 },
+    });
+
+    const invalidResponse = await request.get("/api/jobs?page=0");
+    expect(invalidResponse.status()).toBe(400);
   });
 });
