@@ -1,9 +1,11 @@
 import { AuthPanel } from "@/components/auth-panel";
+import { JobBoard } from "@/components/job-board";
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-12 text-slate-950">
-      <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+      <div className="mx-auto max-w-6xl">
+        <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
         <section className="text-white">
           <p className="mb-4 text-sm font-semibold uppercase tracking-[0.25em] text-indigo-300">
             Smart Job
@@ -18,6 +20,10 @@ export default function Home() {
         </section>
         <div className="rounded-3xl bg-white p-6 shadow-2xl sm:p-8">
           <AuthPanel />
+        </div>
+        </div>
+        <div className="mt-16 rounded-3xl bg-slate-50 p-6 sm:p-10">
+          <JobBoard />
         </div>
       </div>
     </main>
