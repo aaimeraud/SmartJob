@@ -3,7 +3,9 @@ import {
   applicationMessageSchema,
   cvFileSchema,
 } from "@/lib/application-schema";
+import { encryptCv, hasValidCvSignature } from "@/lib/cv-storage";
 import { prisma } from "@/lib/prisma";
+import { consumeRateLimit } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 
 type RouteContext = {
@@ -14,6 +16,13 @@ export async function POST(request: Request, context: RouteContext) {
   const result = await requireRole(request, ["candidate"]);
   if ("response" in result) {
     return result.response;
+  }
+  const rateLimit = consumeRateLimit(`application:${result.user.id}`, 10, 60 * 60 * 1000);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "Too many applications submitted. Try again later." },
+      { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } },
+    );
   }
 
   const { id: jobOfferId } = await context.params;
@@ -40,6 +49,12 @@ export async function POST(request: Request, context: RouteContext) {
       { status: 400 },
     );
   }
+  if (!(await hasValidCvSignature(cvResult.data))) {
+    return NextResponse.json(
+      { error: "CV content does not match its declared file type" },
+      { status: 400 },
+    );
+  }
 
   const messageResult = applicationMessageSchema.safeParse(formData.get("message"));
   if (!messageResult.success) {
@@ -60,6 +75,7 @@ export async function POST(request: Request, context: RouteContext) {
     );
   }
 
+  const encryptedCv = encryptCv(Buffer.from(await cvResult.data.arrayBuffer()));
   const application = await prisma.application.create({
     data: {
       jobOfferId,
@@ -67,7 +83,9 @@ export async function POST(request: Request, context: RouteContext) {
       cvFilename: cvResult.data.name,
       cvMimeType: cvResult.data.type,
       cvSize: cvResult.data.size,
-      cvData: Buffer.from(await cvResult.data.arrayBuffer()),
+      cvData: encryptedCv.data,
+      cvIv: encryptedCv.iv,
+      cvAuthTag: encryptedCv.authTag,
       message: messageResult.data ?? null,
     },
     select: {

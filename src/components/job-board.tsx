@@ -330,9 +330,27 @@ function ApplicationForm({
 
   if (existingApplication) {
     return (
-      <p className="mt-5 text-sm text-slate-500">
-        Candidature envoyée · statut : {existingApplication.status}
-      </p>
+      <div className="mt-5 flex items-center justify-between gap-3 text-sm text-slate-500">
+        <span>Candidature envoyée · statut : {existingApplication.status}</span>
+        <button
+          type="button"
+          onClick={async () => {
+            const response = await fetch(
+              `/api/applications/${existingApplication.id}`,
+              { method: "DELETE" },
+            );
+            if (response.ok) {
+              await onSubmitted();
+              onMessage("Candidature supprimée.");
+            } else {
+              onMessage("Impossible de supprimer la candidature.");
+            }
+          }}
+          className="text-rose-600 hover:text-rose-500"
+        >
+          Supprimer
+        </button>
+      </div>
     );
   }
 

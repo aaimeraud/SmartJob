@@ -1,6 +1,8 @@
 import { requireRole } from "@/lib/authorization";
 import { applicationStatusUpdateSchema } from "@/lib/application-schema";
+import { decryptCv } from "@/lib/cv-storage";
 import { prisma } from "@/lib/prisma";
+import { consumeRateLimit } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 
 type RouteContext = {
@@ -50,11 +52,20 @@ export async function GET(request: Request, context: RouteContext) {
   if ("response" in session) {
     return session.response;
   }
+  const rateLimit = consumeRateLimit(`cv-download:${session.user.id}`, 20, 60 * 60 * 1000);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "Too many CV downloads. Try again later." },
+      { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } },
+    );
+  }
 
   const application = await prisma.application.findUnique({
     where: { id },
     select: {
       cvData: true,
+      cvIv: true,
+      cvAuthTag: true,
       cvFilename: true,
       cvMimeType: true,
       candidateId: true,
@@ -70,11 +81,36 @@ export async function GET(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Application not found" }, { status: 404 });
   }
 
-  return new Response(application.cvData, {
+  const decryptedCv = decryptCv(
+    application.cvData,
+    application.cvIv,
+    application.cvAuthTag,
+  );
+  return new Response(decryptedCv, {
     headers: {
       "Content-Type": application.cvMimeType,
-      "Content-Disposition": `attachment; filename="${application.cvFilename.replaceAll('"', "")}"`,
+      "Content-Disposition": `attachment; filename="${application.cvFilename.replace(
+        /["\r\n]/g,
+        "",
+      )}"`,
       "Cache-Control": "private, no-store",
     },
   });
+}
+
+export async function DELETE(request: Request, context: RouteContext) {
+  const result = await requireRole(request, ["candidate"]);
+  if ("response" in result) {
+    return result.response;
+  }
+  const { id } = await context.params;
+  const application = await prisma.application.findFirst({
+    where: { id, candidateId: result.user.id },
+    select: { id: true },
+  });
+  if (!application) {
+    return NextResponse.json({ error: "Application not found" }, { status: 404 });
+  }
+  await prisma.application.delete({ where: { id } });
+  return new NextResponse(null, { status: 204 });
 }

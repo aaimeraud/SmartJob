@@ -70,6 +70,15 @@ test.describe("API des candidatures", () => {
     };
     expect(data.application.status).toBe("submitted");
     expect(data.application.cvData).toBeUndefined();
+    const stored = await prisma.application.findUniqueOrThrow({
+      where: { id: data.application.id },
+      select: { cvData: true, cvIv: true, cvAuthTag: true },
+    });
+    expect(Buffer.from(stored.cvData).equals(Buffer.from("%PDF-1.7 test"))).toBe(
+      false,
+    );
+    expect(stored.cvIv).toHaveLength(12);
+    expect(stored.cvAuthTag).toHaveLength(16);
 
     const duplicate = await request.post(
       `/api/jobs/${jobOfferId}/applications`,
@@ -124,6 +133,10 @@ test.describe("API des candidatures", () => {
       );
       expect(cvResponse.ok()).toBeTruthy();
       expect(cvResponse.headers()["content-type"]).toContain("application/pdf");
+      const deleteResponse = await request.delete(
+        `/api/applications/${data.application.id}`,
+      );
+      expect(deleteResponse.status()).toBe(204);
     } finally {
       await recruiterContext.dispose();
     }

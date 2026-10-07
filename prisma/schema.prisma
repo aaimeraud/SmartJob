@@ -77,6 +77,8 @@ model Application {
   cvMimeType  String
   cvSize      Int
   cvData      Bytes
+  cvIv        Bytes
+  cvAuthTag   Bytes
   message     String?
   status      ApplicationStatus  @default(submitted)
   createdAt   DateTime           @default(now())

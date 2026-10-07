@@ -70,7 +70,14 @@ Candidates can apply once to a published offer with a PDF or DOCX CV up to
 5 MB and an optional message. Candidates can view their applications, while
 recruiters can view applications for their own offers, update statuses, and
 download CVs. CV content is never returned in JSON responses and is only
-available through an authorized endpoint.
+available through an authorized endpoint. CVs are encrypted at rest with
+AES-256-GCM, and candidates can delete their own application and CV.
+
+Set `CV_ENCRYPTION_KEY` to a persistent 64-character hexadecimal key in every
+environment. Never rotate or replace it without a planned re-encryption
+procedure, otherwise existing CVs cannot be decrypted. Production deployments
+should also configure a scheduled retention job to delete applications and CVs
+after the documented GDPR retention period.
 
 ## Contributing
 
