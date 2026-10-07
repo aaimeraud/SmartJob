@@ -26,6 +26,13 @@ enum ContractType {
   freelance
 }
 
+enum ApplicationStatus {
+  submitted
+  reviewing
+  accepted
+  rejected
+}
+
 model User {
   id            String    @id
   name          String
@@ -38,6 +45,8 @@ model User {
   sessions      Session[]
   accounts      Account[]
   jobOffers     JobOffer[]
+  applications  Application[]
+  cvAccessLogs  CvAccessLog[]
 }
 
 model JobOffer {
@@ -53,11 +62,56 @@ model JobOffer {
   publishedAt  DateTime?
   recruiterId  String
   recruiter    User            @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  applications Application[]
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 
   @@index([recruiterId])
   @@index([status, createdAt])
+}
+
+model Application {
+  id          String            @id @default(cuid())
+  jobOfferId  String
+  candidateId String
+  cvFilename  String
+  cvMimeType  String
+  cvSize      Int
+  cvData      Bytes
+  cvIv        Bytes
+  cvAuthTag   Bytes
+  cvKeyVersion Int              @default(1)
+  message     String?
+  status      ApplicationStatus  @default(submitted)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  jobOffer    JobOffer           @relation(fields: [jobOfferId], references: [id], onDelete: Cascade)
+  candidate   User               @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  cvAccessLogs CvAccessLog[]
+
+  @@unique([jobOfferId, candidateId])
+  @@index([candidateId, createdAt])
+  @@index([jobOfferId, status])
+}
+
+model CvAccessLog {
+  id            String       @id @default(cuid())
+  applicationId String?
+  userId        String
+  action        String
+  createdAt     DateTime     @default(now())
+  application   Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model RateLimitBucket {
+  key       String   @id
+  count     Int      @default(0)
+  resetAt   DateTime
+  updatedAt DateTime @updatedAt
 }
 
 model Session {

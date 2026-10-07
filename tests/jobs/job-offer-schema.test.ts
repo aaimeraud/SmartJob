@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { applicationStatusSchema, cvFileSchema } from "@/lib/application-schema";
 import {
   createJobOfferSchema,
   jobOfferSearchSchema,
@@ -73,5 +74,14 @@ describe("job offer validation", () => {
     expect(
       jobOfferSearchSchema.safeParse({ keyword: "typescript" }).success,
     ).toBe(false);
+  });
+
+  it("accepts supported application statuses", () => {
+    expect(applicationStatusSchema.safeParse("reviewing").success).toBe(true);
+  });
+
+  it("rejects CVs with unsupported types", () => {
+    const file = new File(["not a pdf"], "cv.txt", { type: "text/plain" });
+    expect(cvFileSchema.safeParse(file).success).toBe(false);
   });
 });

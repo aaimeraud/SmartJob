@@ -4,22 +4,22 @@ Lire ce fichier avant toute intervention. Le mettre à jour à la fin de chaque 
 
 ```toon
 project: smart-job
-branch: feature/job-offers
+branch: feature/applications-cv
 status: awaiting_human_validation
 last_session:
   date: 2026-10-07
-  feature: "Search and filters for published job offers"
-  done[12]: "Strict Zod search filter validation","Keyword, location, contract, skill and salary filters","Server-side pagination with total metadata","Filter URL parameters preserved by the UI","Recruiter and public API behavior preserved","Vitest search schema coverage","Playwright live API filter and pagination coverage","Playwright browser filter flow coverage","TypeScript strict type-check","Vitest 13 tests passed","Playwright 9 tests passed","Next.js production build passed"
-  tests: "npx tsc --noEmit: passed; npm test: 13 passed; npm run test:e2e: 9 passed; npm run build: passed"
+  feature: "Applications with CV"
+  done[27]: "Application Prisma model and migration","Candidate-only application creation","PDF and DOCX CV validation with 5 MB limit","PDF/DOCX signature validation","Optional candidate message","One application per candidate and offer","Candidate application listing","Recruiter-owned application listing","Recruiter status updates","Authorized and rate-limited CV download","AES-256-GCM CV encryption at rest","Database-backed distributed rate limiting","CV access audit logs","Candidate application/CV deletion","Upload rate limiting","Filename header sanitization","Retention cleanup endpoint","Key-versioned CV re-encryption endpoint","GDPR retention/key-management documentation","Vitest application schema coverage","Playwright API and browser coverage","TypeScript strict type-check","Vitest 15 tests passed","Playwright 12 tests passed","Next.js production build passed"
+  tests: "npx tsc --noEmit: passed; npm test: 15 passed; npm run test:e2e: 12 passed; npm run build: passed; CV_ENCRYPTION_KEY configured for live tests"
   commit: "pending"
-  files[7]: "src/lib/job-offer-schema.ts","src/app/api/jobs/route.ts","src/components/job-board.tsx","tests/jobs/job-offer-schema.test.ts","tests/api/job-offers-api.spec.ts","tests/e2e/job-search.spec.ts","README.md","SESSION_CONTEXT.md"
+  files[17]: "prisma/schema.prisma","prisma/migrations/20261007100000_add_applications/migration.sql","prisma/migrations/20261007100500_encrypt_application_cvs/migration.sql","prisma/migrations/20261007074920_add_privacy_controls/migration.sql","src/lib/application-schema.ts","src/lib/cv-storage.ts","src/lib/rate-limit.ts","src/lib/cv-audit.ts","src/app/api/jobs/[id]/applications/route.ts","src/app/api/applications/route.ts","src/app/api/applications/[id]/route.ts","src/app/api/admin/privacy/retention/route.ts","src/app/api/admin/privacy/re-encrypt-cvs/route.ts","src/components/job-board.tsx","src/components/auth-panel.tsx","tests/api/applications-api.spec.ts","tests/e2e/applications.spec.ts"
 current:
-  feature: "3. Search + filters"
-  branch: "feature/search-filters"
+  feature: "4. Applications with CV"
+  branch: "feature/applications-cv"
   base: "dev"
-  phase: "Feature implementation and automated validation complete; awaiting human approval"
+  phase: "Security, privacy, audit, retention, and key-rotation hardening complete; awaiting human approval"
   blockers[0]:
-next[3]: "Human validates feature","Merge feature/search-filters when approved","Start feature 4: applications with CV"
+next[3]: "Human validates feature","Merge feature/applications-cv when approved","Start feature 5: recruiter dashboard"
 rules[4]: "One feature per feature/<name> branch","Follow Conventional Commits","Do not start frontend before backend tests and live validation pass","Update this file after every session"
 history:
   - date: 2026-10-06
@@ -32,4 +32,6 @@ history:
     result: "Job offers feature completed with Prisma migration, recruiter CRUD API, published listing, UI management, and passing tests"
   - date: 2026-10-07
     result: "Search and filters feature completed with validated API filters, pagination, URL-synchronized UI, browser coverage, and passing build"
+  - date: 2026-10-07
+    result: "Applications feature hardened with signature validation, AES-256-GCM encryption, database-backed rate limits, CV access audit logs, retention endpoint, key-versioned re-encryption endpoint, candidate deletion, and passing validation"
 ```

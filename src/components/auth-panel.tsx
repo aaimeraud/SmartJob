@@ -80,6 +80,7 @@ export function AuthPanel() {
     }
 
     setUser(data.user ?? null);
+    window.dispatchEvent(new Event("smart-job:session-changed"));
     setMessage(
       mode === "sign-up"
         ? "Compte créé. Bienvenue sur Smart Job."
